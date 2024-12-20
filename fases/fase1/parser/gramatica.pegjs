@@ -6,10 +6,13 @@
 
     import { ids, usos} from '../index.js'
     import { ErrorReglas } from './error.js';
-    import { errores } from '../index.js'
+    import { errores } from '../index.js';
+
+    import * as n from '../parser/visitor/CST.js';
+
 }}
 
-gramatica = _ producciones+ _ {
+gramatica = _ productions:producciones+ _ {
 
     let duplicados = ids.filter((item, index) => ids.indexOf(item) !== index);
     if (duplicados.length > 0) {
@@ -21,22 +24,38 @@ gramatica = _ producciones+ _ {
     if (noEncontrados.length > 0) {
         errores.push(new ErrorReglas("Regla no encontrada: " + noEncontrados[0]));
     }
+    return productions;
 }
 
-producciones = _ id:identificador _ (literales)? _ "=" _ opciones (_";")? { ids.push(id) }
+producciones = _ id:identificador _ name:(literales)? _ "=" _ exprs:opciones (_";")? { 
+    ids.push(id);
+    //new node type Productions
+    return new n.Productions(id, name, exprs); 
+}
 
-opciones = union (_ "/" _ union)*
+opciones = expr:union exprs:(_ "/" _ @union)* {
+    //new node type Options
+    return new n.Options([expr, ...exprs]);
+}
 
-union = expresion (_ expresion !(_ literales? _ "=") )*
+union = expr:expresion exprs:(_ @expresion !(_ literales? _ "=") )* {
+    //new node type Union
+    return new n.Union([expr, ...exprs]);
+}
 
-expresion  = (etiqueta/varios)? _ expresiones _ ([?+*]/conteo)?
+expresion  
+    = label:$(etiqueta/varios)? _ exprs:expresiones _ count:$([?+*]/conteo)? {
+    return new n.Expression(label, exprs, count);
+}
 
 etiqueta = ("@")? _ id:identificador _ ":" (varios)?
 
 varios = ("!"/"$"/"@"/"&")
 
 expresiones  =  id:identificador { usos.push(id) }
-                / literales "i"?
+                / value:literales ingnoreCase:"i"? {
+                    return new n.String(value.toString().replace(/['"]/g, ''), ingnoreCase);
+                }
                 / "(" _ opciones _ ")"
                 / corchetes "i"?
                 / "."
@@ -85,8 +104,9 @@ corchete
 texto
     = [^\[\]]+
 
-literales = '"' stringDobleComilla* '"'
-            / "'" stringSimpleComilla* "'"
+literales 
+        = '"' stringDobleComilla* '"'
+        / "'" stringSimpleComilla* "'"
 
 stringDobleComilla = !('"' / "\\" / finLinea) .
                     / "\\" escape
