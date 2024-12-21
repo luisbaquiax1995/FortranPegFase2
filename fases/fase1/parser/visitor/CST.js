@@ -2,21 +2,21 @@
 // Auto-generated
 import Node from './Node.js';
 
-export class Productions extends Node {
+export class Producciones extends Node {
 
-    constructor(id, name, exprs) {
+    constructor(id, expr, alias) {
         super();
         this.id = id;
-		this.name = name;
-		this.exprs = exprs;
+		this.expr = expr;
+		this.alias = alias;
     }
 
     accept(visitor) {
-        return visitor.visitProductions(this);
+        return visitor.visitProducciones(this);
     }
 }
     
-export class Options extends Node {
+export class Opciones extends Node {
 
     constructor(exprs) {
         super();
@@ -24,7 +24,7 @@ export class Options extends Node {
     }
 
     accept(visitor) {
-        return visitor.visitOptions(this);
+        return visitor.visitOpciones(this);
     }
 }
     
@@ -40,30 +40,104 @@ export class Union extends Node {
     }
 }
     
-export class Expression extends Node {
+export class Expresion extends Node {
 
-    constructor(label, exprs, count) {
+    constructor(expr, label, qty) {
         super();
-        this.label = label;
-		this.exprs = exprs;
-		this.count = count;
+        this.expr = expr;
+		this.label = label;
+		this.qty = qty;
     }
 
     accept(visitor) {
-        return visitor.visitExpression(this);
+        return visitor.visitExpresion(this);
     }
 }
     
 export class String extends Node {
 
-    constructor(value, ignoresCase) {
+    constructor(val, isCase) {
         super();
-        this.value = value;
-		this.ignoresCase = ignoresCase;
+        this.val = val;
+		this.isCase = isCase;
     }
 
     accept(visitor) {
         return visitor.visitString(this);
+    }
+}
+    
+export class Any extends Node {
+
+    constructor(isAny) {
+        super();
+        this.isAny = isAny;
+    }
+
+    accept(visitor) {
+        return visitor.visitAny(this);
+    }
+}
+    
+export class Corchetes extends Node {
+
+    constructor(exprs, isCase) {
+        super();
+        this.exprs = exprs;
+		this.isCase = isCase;
+    }
+
+    accept(visitor) {
+        return visitor.visitCorchetes(this);
+    }
+}
+    
+export class rango extends Node {
+
+    constructor(start, end) {
+        super();
+        this.start = start;
+		this.end = end;
+    }
+
+    accept(visitor) {
+        return visitor.visitrango(this);
+    }
+}
+    
+export class literalRango extends Node {
+
+    constructor(val) {
+        super();
+        this.val = val;
+    }
+
+    accept(visitor) {
+        return visitor.visitliteralRango(this);
+    }
+}
+    
+export class idRel extends Node {
+
+    constructor(val) {
+        super();
+        this.val = val;
+    }
+
+    accept(visitor) {
+        return visitor.visitidRel(this);
+    }
+}
+    
+export class grupo extends Node {
+
+    constructor(expr) {
+        super();
+        this.expr = expr;
+    }
+
+    accept(visitor) {
+        return visitor.visitgrupo(this);
     }
 }
     

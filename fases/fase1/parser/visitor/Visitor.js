@@ -1,9 +1,15 @@
 
 // Auto-generated
 export default class Visitor {
-	visitProductions(node) {}
-	visitOptions(node) {}
+	visitProducciones(node) {}
+	visitOpciones(node) {}
 	visitUnion(node) {}
-	visitExpression(node) {}
+	visitExpresion(node) {}
 	visitString(node) {}
+	visitAny(node) {}
+	visitCorchetes(node) {}
+	visitrango(node) {}
+	visitliteralRango(node) {}
+	visitidRel(node) {}
+	visitgrupo(node) {}
 }

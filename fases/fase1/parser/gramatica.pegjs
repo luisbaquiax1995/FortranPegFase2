@@ -6,14 +6,13 @@
 
     import { ids, usos} from '../index.js'
     import { ErrorReglas } from './error.js';
-    import { errores } from '../index.js';
+    import { errores } from '../index.js'
 
     import * as n from '../parser/visitor/CST.js';
-
 }}
 
-gramatica = _ productions:producciones+ _ {
-
+gramatica
+  = _ prods:producciones+ _ {
     let duplicados = ids.filter((item, index) => ids.indexOf(item) !== index);
     if (duplicados.length > 0) {
         errores.push(new ErrorReglas("Regla duplicada: " + duplicados[0]));
@@ -24,42 +23,55 @@ gramatica = _ productions:producciones+ _ {
     if (noEncontrados.length > 0) {
         errores.push(new ErrorReglas("Regla no encontrada: " + noEncontrados[0]));
     }
-    return productions;
-}
+    return prods;
+  }
 
-producciones = _ id:identificador _ name:(literales)? _ "=" _ exprs:opciones (_";")? { 
+producciones
+  = _ id:identificador _ alias:(literales)? _ "=" _ expr:opciones (_";")? {
     ids.push(id);
-    //new node type Productions
-    return new n.Productions(id, name, exprs); 
-}
+    return new n.Producciones(id, expr, alias);
+  }
 
-opciones = expr:union exprs:(_ "/" _ @union)* {
-    //new node type Options
-    return new n.Options([expr, ...exprs]);
-}
+opciones
+  = expr:union rest:(_ "/" _ @union)* {
+    return new n.Opciones([expr, ...rest]);
+  }
 
-union = expr:expresion exprs:(_ @expresion !(_ literales? _ "=") )* {
-    //new node type Union
-    return new n.Union([expr, ...exprs]);
-}
+union
+  = expr:expresion rest:(_ @expresion !(_ literales? _ "=") )* {
+    return new n.Union([expr, ...rest]);
+  }
 
-expresion  
-    = label:$(etiqueta/varios)? _ exprs:expresiones _ count:$([?+*]/conteo)? {
-    return new n.Expression(label, exprs, count);
-}
+expresion
+  = label:$(etiqueta/varios)? _ expr:expresiones _ qty:$([?+*]/conteo)? {
+    return new n.Expresion(expr, label, qty);
+  }
 
 etiqueta = ("@")? _ id:identificador _ ":" (varios)?
 
 varios = ("!"/"$"/"@"/"&")
 
-expresiones  =  id:identificador { usos.push(id) }
-                / value:literales ingnoreCase:"i"? {
-                    return new n.String(value.toString().replace(/['"]/g, ''), ingnoreCase);
-                }
-                / "(" _ opciones _ ")"
-                / corchetes "i"?
-                / "."
-                / "!."
+expresiones
+  = id:identificador {
+    usos.push(id);
+    return new n.idRel(id);
+  }
+  / val:$literales isCase:"i"? {
+    return new n.String(val.replace(/['"]/g, ''), isCase);
+  }
+  / "(" _ opciones:opciones _ ")"{
+    return new n.grupo(opciones);
+  }
+
+  / exprs:corchetes isCase:"i"?{
+    console.log("Corchetes", exprs);
+    return new n.Corchetes(exprs, isCase);
+
+  }
+  / "." {
+    return new n.Any(true);
+  }
+  / "!."
 
 // conteo = "|" parteconteo _ (_ delimitador )? _ "|"
 
@@ -77,36 +89,35 @@ conteo = "|" _ (numero / id:identificador) _ "|"
 // Regla principal que analiza corchetes con contenido
 corchetes
     = "[" contenido:(rango / contenido)+ "]" {
-        return `Entrada válida: [${input}]`;
+        return contenido;
     }
 
 // Regla para validar un rango como [A-Z]
 rango
-    = inicio:caracter "-" fin:caracter {
-        if (inicio.charCodeAt(0) > fin.charCodeAt(0)) {
-            throw new Error(`Rango inválido: [${inicio}-${fin}]`);
-
-        }
-        return `${inicio}-${fin}`;
+    = inicio:$caracter "-" fin:$caracter {
+        return new  n.rango(inicio, fin);
     }
 
 // Regla para caracteres individuales
 caracter
-    = [a-zA-Z0-9_ ] { return text()}
+    = [a-zA-Z0-9_ ] 
 
 // Coincide con cualquier contenido que no incluya "]"
 contenido
-    = (corchete / texto)+
+    = contenido: (corchete / @$texto){
+        return new n.literalRango(contenido);
+    }
 
 corchete
     = "[" contenido "]"
 
 texto
-    = [^\[\]]+
+    = "\\" escape
+    /[^\[\]]
 
-literales 
-        = '"' stringDobleComilla* '"'
-        / "'" stringSimpleComilla* "'"
+literales
+  = '"' @stringDobleComilla* '"'
+  / "'" @stringSimpleComilla* "'"
 
 stringDobleComilla = !('"' / "\\" / finLinea) .
                     / "\\" escape
