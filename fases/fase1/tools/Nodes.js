@@ -3,11 +3,11 @@ const nodes = {
    Opciones: ['exprs'],
    Union: ['exprs'],
    Expresion: ['expr', 'label', 'qty'],
-   String: ['val', 'isCase'],
+   String: ['val', 'isCase', 'qty'],
    Any: ['isAny'],
-   Corchetes: ['exprs', 'isCase'],
-   rango: ['start', 'end'],
-   literalRango:['val'],
+   Corchetes: ['exprs', 'isCase', 'qty'],
+   rango: ['start', 'end', 'isCase'],
+   literalRango:['val', 'isCase'],
    idRel:['val'],
    grupo:['expr']
 };

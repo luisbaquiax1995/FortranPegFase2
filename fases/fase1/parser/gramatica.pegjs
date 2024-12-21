@@ -64,7 +64,7 @@ expresiones
   }
 
   / exprs:corchetes isCase:"i"?{
-    console.log("Corchetes", exprs);
+    //console.log("Corchetes", exprs);
     return new n.Corchetes(exprs, isCase);
 
   }

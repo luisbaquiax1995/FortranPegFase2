@@ -302,7 +302,7 @@ function peg$parse(input, options) {
     return new n.grupo(opciones);
   };
   var peg$f8 = function(exprs, isCase) {
-    console.log("Corchetes", exprs);
+    //console.log("Corchetes", exprs);
     return new n.Corchetes(exprs, isCase);
 
   };

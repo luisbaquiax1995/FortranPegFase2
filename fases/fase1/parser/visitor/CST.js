@@ -56,10 +56,11 @@ export class Expresion extends Node {
     
 export class String extends Node {
 
-    constructor(val, isCase) {
+    constructor(val, isCase, qty) {
         super();
         this.val = val;
 		this.isCase = isCase;
+		this.qty = qty;
     }
 
     accept(visitor) {
@@ -81,10 +82,11 @@ export class Any extends Node {
     
 export class Corchetes extends Node {
 
-    constructor(exprs, isCase) {
+    constructor(exprs, isCase, qty) {
         super();
         this.exprs = exprs;
 		this.isCase = isCase;
+		this.qty = qty;
     }
 
     accept(visitor) {
@@ -94,10 +96,11 @@ export class Corchetes extends Node {
     
 export class rango extends Node {
 
-    constructor(start, end) {
+    constructor(start, end, isCase) {
         super();
         this.start = start;
 		this.end = end;
+		this.isCase = isCase;
     }
 
     accept(visitor) {
@@ -107,9 +110,10 @@ export class rango extends Node {
     
 export class literalRango extends Node {
 
-    constructor(val) {
+    constructor(val, isCase) {
         super();
         this.val = val;
+		this.isCase = isCase;
     }
 
     accept(visitor) {
