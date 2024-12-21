@@ -1,1 +1,1 @@
-# Generación de gramática con PeggyJS
+# Fase 1: generación de gramática con PeggyJS
