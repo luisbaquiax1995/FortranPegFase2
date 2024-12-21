@@ -94,7 +94,7 @@ export class Corchetes extends Node {
     }
 }
     
-export class rango extends Node {
+export class Rango extends Node {
 
     constructor(start, end, isCase) {
         super();
@@ -104,11 +104,11 @@ export class rango extends Node {
     }
 
     accept(visitor) {
-        return visitor.visitrango(this);
+        return visitor.visitRango(this);
     }
 }
     
-export class literalRango extends Node {
+export class LiteralRango extends Node {
 
     constructor(val, isCase) {
         super();
@@ -117,11 +117,11 @@ export class literalRango extends Node {
     }
 
     accept(visitor) {
-        return visitor.visitliteralRango(this);
+        return visitor.visitLiteralRango(this);
     }
 }
     
-export class idRel extends Node {
+export class IdRel extends Node {
 
     constructor(val) {
         super();
@@ -129,11 +129,11 @@ export class idRel extends Node {
     }
 
     accept(visitor) {
-        return visitor.visitidRel(this);
+        return visitor.visitIdRel(this);
     }
 }
     
-export class grupo extends Node {
+export class Grupo extends Node {
 
     constructor(expr) {
         super();
@@ -141,7 +141,7 @@ export class grupo extends Node {
     }
 
     accept(visitor) {
-        return visitor.visitgrupo(this);
+        return visitor.visitGrupo(this);
     }
 }
     

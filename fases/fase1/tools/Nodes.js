@@ -6,10 +6,10 @@ const nodes = {
    String: ['val', 'isCase', 'qty'],
    Any: ['isAny'],
    Corchetes: ['exprs', 'isCase', 'qty'],
-   rango: ['start', 'end', 'isCase'],
-   literalRango:['val', 'isCase'],
-   idRel:['val'],
-   grupo:['expr']
+   Rango: ['start', 'end', 'isCase'],
+   LiteralRango:['val', 'isCase'],
+   IdRel:['val'],
+   Grupo:['expr']
 };
 
 export default nodes;
