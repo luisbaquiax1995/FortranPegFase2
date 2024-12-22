@@ -61,6 +61,10 @@ function nextsym(input) result(lexval)
                 input = input(i:)
                 lexval = lexval // ' - string'
                 return
+            else if (is_space) then
+                input = input(i:)
+                lexval = lexval // ' - whitespace'
+                return
             end if
             is_space = .true.
             if (input(i:i) == ' ') lexval = lexval // '_'
@@ -69,6 +73,15 @@ function nextsym(input) result(lexval)
         
         ! error
         else
+            if (is_int) then
+                input = input(i:)
+                lexval = lexval // ' - integer'
+                return
+            else if (is_str) then
+                input = input(i:)
+                lexval = lexval // ' - string'
+                return
+            end if
             lexval = input(i:i) // " - error"
             input = input(i+1:)
             return
