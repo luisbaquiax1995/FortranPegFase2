@@ -2,6 +2,12 @@ import Visitor from './Visitor.js';
 import * as n from './CST.js';
 
 export default class Tokenizer extends Visitor {
+    constructor() {
+        super();
+        this.calledRules = [];
+        this.pendingRules = [];
+        this.isFisrtRule = true;
+    }
     generateTokenizer(grammar) {
         return `
 module tokenizer
@@ -33,7 +39,15 @@ function nextSym(input, cursor) result(lexeme)
         return
     end if
 
-    ${grammar.map((produccion) => produccion.accept(this)).join('\n')}
+    ${(() => {
+        let result = '';
+        do {
+            
+            result += grammar.map((produccion) => produccion.accept(this)).join('\n');
+        } while (this.pendingRules.length > 0);
+
+        return result;  
+    })()}
 
     print *, "error lexico en col ", cursor, ', "'//input(cursor:cursor)//'"'
     lexeme = "ERROR"
@@ -43,7 +57,33 @@ end module tokenizer
     }
 
     visitProducciones(node) {
-        return node.expr.accept(this);
+        if (this.isFisrtRule) {
+            this.isFisrtRule = false;  
+            let index = this.pendingRules.indexOf(node.id);
+
+            if (index !== -1) {
+                this.pendingRules.splice(index, 1);
+            }
+            return node.expr.accept(this);
+        }
+
+
+        if (this.calledRules.includes(node.id) && this.pendingRules.includes(node.id)) {
+
+            let index = this.pendingRules.indexOf(node.id);
+
+            if (index !== -1) {
+                this.pendingRules.splice(index, 1);
+            }
+            return node.expr.accept(this);
+             
+        }
+
+        console.log("llamadas");
+        console.log(this.calledRules);
+        console.log("pendientes");
+        console.log(this.pendingRules);
+        return '';
     }
     visitOpciones(node) {
         return node.exprs.map((expr) => expr.accept(this)).join('\n');
@@ -104,7 +144,7 @@ end module tokenizer
             "\\t": "char(9)",  // Tabulación
             "\\n": "char(10)", // Nueva línea
             " ": "char(32)",   // Espacio
-            "\r": "char(13)",  // Retorno de carro
+            "\\r": "char(13)",  // Retorno de carro
         };
     
         // Verifica si el literal es especial y tradúcelo, de lo contrario usa comillas
@@ -117,11 +157,19 @@ end module tokenizer
     }
 
     visitidRel(node) {
-        return ``;
+        if (!this.calledRules.includes(node.val)) {
+            this.calledRules.push(node.val);
+            this.pendingRules.push(node.val);
+        }
+        return '';
     }
 
     visitgrupo(node) {
         return node.expr.accept(this);
+    }
+
+    visitfinCadena(node) {
+        return '';
     }
 
     renderQuantifierOption(qty, condition, length){

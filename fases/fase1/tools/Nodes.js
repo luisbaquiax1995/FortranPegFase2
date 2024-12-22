@@ -9,7 +9,8 @@ const nodes = {
    rango: ['start', 'end', 'isCase'],
    literalRango:['val', 'isCase'],
    idRel:['val'],
-   grupo:['expr']
+   grupo:['expr'],
+   finCadena:[]
 };
 
 export default nodes;

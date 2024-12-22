@@ -12,4 +12,5 @@ export default class Visitor {
 	visitliteralRango(node) {}
 	visitidRel(node) {}
 	visitgrupo(node) {}
+	visitfinCadena(node) {}
 }

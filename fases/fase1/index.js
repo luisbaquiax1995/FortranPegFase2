@@ -33,16 +33,17 @@ const analizar = () => {
     errores.length = 0;
     try {
         const cst = parse(entrada);
-        const tokenizer = new Tokenizer();
-        const fileContents = tokenizer.generateTokenizer(cst);
-        const blob = new Blob([fileContents], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const button = document.getElementById('ButtomDownload');
-        button.href = url;
         if (errores.length > 0) {
             salida.setValue(`Error: ${errores[0].message}`);
             return;
         } else {
+           
+            const tokenizer = new Tokenizer();
+            const fileContents = tokenizer.generateTokenizer(cst);
+            const blob = new Blob([fileContents], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const button = document.getElementById('ButtomDownload');
+            button.href = url;
             salida.setValue(fileContents);
         }
 

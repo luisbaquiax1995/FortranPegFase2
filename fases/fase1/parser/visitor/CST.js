@@ -145,3 +145,15 @@ export class grupo extends Node {
     }
 }
     
+export class finCadena extends Node {
+
+    constructor() {
+        super();
+        
+    }
+
+    accept(visitor) {
+        return visitor.visitfinCadena(this);
+    }
+}
+    
