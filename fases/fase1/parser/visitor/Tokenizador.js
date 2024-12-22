@@ -27,6 +27,52 @@ function tolower(str) result(lower_str)
         end do
 end function tolower
 
+function is_digit(str) result(res)
+    implicit none
+    character(len=*), intent(in) :: str
+    integer :: i
+    logical :: res
+
+    res = .true.
+    do i = 1, len(str)
+        if (.not. (str(i:i) >= '0' .and. str(i:i) <= '9')) then
+            res = .false.
+            return
+        end if
+    end do
+end function is_digit
+
+function is_str(str) result(res)
+    implicit none
+    character(len=*), intent(in) :: str
+    integer :: i
+    logical :: res
+
+    res = .true.
+    do i = 1, len(str)
+        if (.not. ((str(i:i) >= 'A' .and. str(i:i) <= 'Z') .or. &
+                   (str(i:i) >= 'a' .and. str(i:i) <= 'z'))) then
+            res = .false.
+            return
+        end if
+    end do
+end function is_str
+
+function with_whitespace(str) result(res)
+    implicit none
+    character(len=*), intent(in) :: str
+    integer :: i
+    logical :: res
+
+    res = .false.
+    do i = 1, len(str)
+        if (str(i:i) == ' ' .or. str(i:i) == char(9) .or. str(i:i) == char(10) .or. str(i:i) == char(13)) then
+            res = .true.
+            return
+        end if
+    end do
+end function with_whitespace
+
 function nextSym(input, cursor) result(lexeme)
     character(len=*), intent(in) :: input
     integer, intent(inout) :: cursor
@@ -115,6 +161,14 @@ end module tokenizer
     if (cursor <= len_trim(input)) then
         allocate( character(len=1) :: lexeme)
         lexeme = input(cursor:cursor)
+
+        lexeme = merge(lexeme // " integer", &
+               merge(lexeme // " cadena", &
+                     merge(lexeme // " whitespace", lexeme // " simbolo", with_whitespace(lexeme)), &
+                     is_str(lexeme)), &
+               is_digit(lexeme))
+
+
         cursor = cursor + 1
         return
     end if
@@ -181,13 +235,25 @@ end module tokenizer
     end do
     if (cursor > initialCursor) then
         allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1)
+        lexeme = input(initialCursor:cursor-1) 
+
+        lexeme = merge(lexeme // " integer", &
+               merge(lexeme // " cadena", &
+                     merge(lexeme // " whitespace", lexeme // " simbolo", with_whitespace(lexeme)), &
+                     is_str(lexeme)), &
+               is_digit(lexeme))
         return
     end if`      
             : `
     if (cursor <= len_trim(input) .and. (${condition})) then 
         allocate( character(len=${length}) :: lexeme)
         lexeme = input(cursor:cursor + ${length - 1})
+
+        lexeme = merge(lexeme // " integer", &
+               merge(lexeme // " cadena", &
+                     merge(lexeme // " whitespace", lexeme // " simbolo", with_whitespace(lexeme)), &
+                     is_str(lexeme)), &
+               is_digit(lexeme))
         cursor = cursor + ${length}
         return
     end if`;
