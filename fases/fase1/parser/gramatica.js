@@ -13,19 +13,7 @@
     import { ErrorReglas } from './error.js';
     import { errores } from '../index.js'
 
-    import {
-      Producciones,
-      Opciones,
-      Union,
-      Expresion,
-      String,
-      Any,
-      Corchetes,
-      Rango,
-      LiteralRango,
-      IdRel,
-      Grupo
-  }  from '../parser/visitor/CST.js';
+    import * as n from '../parser/visitor/CST.js';
 
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
@@ -292,43 +280,43 @@ function peg$parse(input, options) {
   };
   var peg$f1 = function(id, alias, expr) {
     ids.push(id);
-    return new Producciones(id, expr, alias);
+    return new n.Producciones(id, expr, alias);
   };
   var peg$f2 = function(expr, rest) {
-    return new Opciones([expr, ...rest]);
+    return new n.Opciones([expr, ...rest]);
   };
   var peg$f3 = function(expr, rest) {
-    return new Union([expr, ...rest]);
+    return new n.Union([expr, ...rest]);
   };
   var peg$f4 = function(label, expr, qty) {
-    return new Expresion(expr, label, qty);
+    return new n.Expresion(expr, label, qty);
   };
   var peg$f5 = function(id) {
     usos.push(id);
-    return new IdRel(id);
+    return new n.idRel(id);
   };
   var peg$f6 = function(val, isCase) {
-    return new String(val.replace(/['"]/g, ''), isCase);
+    return new n.String(val.replace(/['"]/g, ''), isCase);
   };
   var peg$f7 = function(opciones) {
-    return new Grupo(opciones);
+    return new n.grupo(opciones);
   };
   var peg$f8 = function(exprs, isCase) {
     //console.log("Corchetes", exprs);
-    return new Corchetes(exprs, isCase);
+    return new n.Corchetes(exprs, isCase);
 
   };
   var peg$f9 = function() {
-    return new Any(true);
+    return new n.Any(true);
   };
   var peg$f10 = function(contenido) {
         return contenido;
     };
   var peg$f11 = function(inicio, fin) {
-        return new  Rango(inicio, fin);
+        return new  n.rango(inicio, fin);
     };
   var peg$f12 = function(contenido) {
-        return new LiteralRango(contenido);
+        return new n.literalRango(contenido);
     };
   var peg$f13 = function() { return text() };
   var peg$currPos = options.peg$currPos | 0;

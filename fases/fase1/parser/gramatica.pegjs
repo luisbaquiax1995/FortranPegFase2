@@ -8,20 +8,7 @@
     import { ErrorReglas } from './error.js';
     import { errores } from '../index.js'
 
-    
-    import {
-        Producciones,
-        Opciones,
-        Union,
-        Expresion,
-        String,
-        Any,
-        Corchetes,
-        Rango,
-        LiteralRango,
-        IdRel,
-        Grupo
-    } from '../parser/visitor/CST.js';
+    import * as n from '../parser/visitor/CST.js';
 }}
 
 gramatica
@@ -42,22 +29,22 @@ gramatica
 producciones
   = _ id:identificador _ alias:(literales)? _ "=" _ expr:opciones (_";")? {
     ids.push(id);
-    return new Producciones(id, expr, alias);
+    return new n.Producciones(id, expr, alias);
   }
 
 opciones
   = expr:union rest:(_ "/" _ @union)* {
-    return new Opciones([expr, ...rest]);
+    return new n.Opciones([expr, ...rest]);
   }
 
 union
   = expr:expresion rest:(_ @expresion !(_ literales? _ "=") )* {
-    return new Union([expr, ...rest]);
+    return new n.Union([expr, ...rest]);
   }
 
 expresion
   = label:$(etiqueta/varios)? _ expr:expresiones _ qty:$([?+*]/conteo)? {
-    return new Expresion(expr, label, qty);
+    return new n.Expresion(expr, label, qty);
   }
 
 etiqueta = ("@")? _ id:identificador _ ":" (varios)?
@@ -67,22 +54,22 @@ varios = ("!"/"$"/"@"/"&")
 expresiones
   = id:identificador {
     usos.push(id);
-    return new IdRel(id);
+    return new n.idRel(id);
   }
   / val:$literales isCase:"i"? {
-    return new String(val.replace(/['"]/g, ''), isCase);
+    return new n.String(val.replace(/['"]/g, ''), isCase);
   }
   / "(" _ opciones:opciones _ ")"{
-    return new Grupo(opciones);
+    return new n.grupo(opciones);
   }
 
   / exprs:corchetes isCase:"i"?{
     //console.log("Corchetes", exprs);
-    return new Corchetes(exprs, isCase);
+    return new n.Corchetes(exprs, isCase);
 
   }
   / "." {
-    return new Any(true);
+    return new n.Any(true);
   }
   / "!."
 
@@ -108,7 +95,7 @@ corchetes
 // Regla para validar un rango como [A-Z]
 rango
     = inicio:$caracter "-" fin:$caracter {
-        return new  Rango(inicio, fin);
+        return new  n.rango(inicio, fin);
     }
 
 // Regla para caracteres individuales
@@ -118,7 +105,7 @@ caracter
 // Coincide con cualquier contenido que no incluya "]"
 contenido
     = contenido: (corchete / @$texto){
-        return new LiteralRango(contenido);
+        return new n.literalRango(contenido);
     }
 
 corchete

@@ -8,8 +8,8 @@ export default class Visitor {
 	visitString(node) {}
 	visitAny(node) {}
 	visitCorchetes(node) {}
-	visitRango(node) {}
-	visitLiteralRango(node) {}
-	visitIdRel(node) {}
-	visitGrupo(node) {}
+	visitrango(node) {}
+	visitliteralRango(node) {}
+	visitidRel(node) {}
+	visitgrupo(node) {}
 }
