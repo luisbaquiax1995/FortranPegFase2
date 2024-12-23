@@ -271,7 +271,57 @@ end module parser
     }
 
     renderQuantifierOption(qty, condition, length){
-        return (qty == '+' || qty == '*')
+        var resultOneMore = `
+        initialCursor = cursor
+        do while (cursor <= len_trim(input) .and. (${condition}))
+            cursor = cursor + ${length}
+        end do
+        if (cursor > initialCursor) then
+            buffer = buffer // input(initialCursor:cursor-1) 
+            buffer = replace_special_characters(buffer)
+        else
+            cursor = initialCursor
+            concat_failed = .true.
+            buffer = ""
+        end if`      ;
+
+        var resultZeroMore = `
+        initialCursor = cursor
+        do while (cursor <= len_trim(input) .and. (${condition}))
+            cursor = cursor + ${length}
+        end do
+        if (cursor > initialCursor) then
+            buffer = buffer // input(initialCursor:cursor-1) 
+            buffer = replace_special_characters(buffer)
+        end if`      ;
+
+        var resultZeroOrOne = `
+        if (cursor <= len_trim(input) .and. (${condition})) then 
+            buffer = buffer // input(cursor:cursor + ${length - 1})
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + ${length}
+        end if` ;
+
+        var one = `
+        if (cursor <= len_trim(input) .and. (${condition})) then 
+            buffer = buffer // input(cursor:cursor + ${length - 1})
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + ${length}
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if` ;
+    
+        
+        switch (qty) {
+            case '+': return resultOneMore;
+            case '*': return resultZeroMore;
+            case '?': return resultZeroOrOne;
+            default: return one;
+        }   
+
+
+        /*return (qty == '+' || qty == '*')
         ? `
         initialCursor = cursor
         do while (cursor <= len_trim(input) .and. (${condition}))
@@ -293,7 +343,7 @@ end module parser
         else
             concat_failed = .true.
             buffer = ""
-        end if`;
+        end if`;*/
     
     }
 
