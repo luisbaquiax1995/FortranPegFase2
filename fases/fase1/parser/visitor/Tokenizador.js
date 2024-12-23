@@ -118,7 +118,7 @@ end module parser
                 this.pendingRules.splice(index, 1);
             }
 
-            this.nameProduction = node.alias? node.alias : node.id;
+            this.nameProduction = node.alias? node.alias : '"'+node.id+'"';
             console.log("nameProduction: " + this.nameProduction);
             return node.expr.accept(this);
         }
@@ -132,8 +132,8 @@ end module parser
                 this.pendingRules.splice(index, 1);
             }
 
-            this.nameProduction = node.alias? node.alias : node.id;
-            console.log("nameProduction: " + this.nameProduction);
+            this.nameProduction = node.alias? node.alias : '"'+node.id+'"';
+            //console.log("nameProduction: " + this.nameProduction);
             return node.expr.accept(this);
              
         }
@@ -178,7 +178,7 @@ end module parser
     if (.not. concat_failed .and. len(buffer) > 0) then
         allocate( character(len=len(buffer)) :: lexeme)
         lexeme = buffer
-        lexeme = lexeme // " -" // "${this.nameProduction}"
+        lexeme = lexeme // " -" // ${this.nameProduction}
         return
     end if
         `

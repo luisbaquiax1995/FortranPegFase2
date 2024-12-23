@@ -34,56 +34,44 @@ function tolower(str) result(lower_str)
         end do
 end function tolower
 
-function is_digit(str) result(res)
+function replace_special_characters(input_string) result(output_string)
     implicit none
-    character(len=*), intent(in) :: str
-    integer :: i
-    logical :: res
+    character(len=:), allocatable, intent(in) :: input_string
+    character(len=:), allocatable :: temp_string
+    character(len=:), allocatable :: output_string
+    integer :: i, length
 
-    res = .true.
-    do i = 1, len(str)
-        if (.not. (str(i:i) >= '0' .and. str(i:i) <= '9')) then
-            res = .false.
-            return
-        end if
+    temp_string = ""
+    length = len(input_string)
+
+    do i = 1, length
+        select case (ichar(input_string(i:i)))
+        case (10) ! Nueva línea
+            temp_string = temp_string // '\n'
+        case (9)  ! Tabulación
+            temp_string = temp_string // '\t'
+        case (13) ! Retorno de carro
+            temp_string = temp_string // '\r'
+        case (32) ! Espacio
+            if (input_string(i:i) == " ") then
+                temp_string = temp_string // "_"
+            else
+                temp_string = temp_string // input_string(i:i)
+            end if
+        case default
+            temp_string = temp_string // input_string(i:i)
+        end select
     end do
-end function is_digit
-
-function is_str(str) result(res)
-    implicit none
-    character(len=*), intent(in) :: str
-    integer :: i
-    logical :: res
-
-    res = .true.
-    do i = 1, len(str)
-        if (.not. ((str(i:i) >= 'A' .and. str(i:i) <= 'Z') .or. &
-                   (str(i:i) >= 'a' .and. str(i:i) <= 'z'))) then
-            res = .false.
-            return
-        end if
-    end do
-end function is_str
-
-function with_whitespace(str) result(res)
-    implicit none
-    character(len=*), intent(in) :: str
-    integer :: i
-    logical :: res
-
-    res = .false.
-    do i = 1, len(str)
-        if (str(i:i) == ' ' .or. str(i:i) == char(9) .or. str(i:i) == char(10) .or. str(i:i) == char(13)) then
-            res = .true.
-            return
-        end if
-    end do
-end function with_whitespace
+    allocate(character(len=len(temp_string)) :: output_string)
+    output_string = temp_string
+end function
 
 function nextSym(input, cursor) result(lexeme)
     character(len=*), intent(in) :: input
     integer, intent(inout) :: cursor
     character(len=:), allocatable :: lexeme
+    character(len=:), allocatable :: buffer 
+    logical :: concat_failed
     integer :: initialCursor
 
     if (cursor > len(input)) then
@@ -93,55 +81,112 @@ function nextSym(input, cursor) result(lexeme)
     end if
 
     
+    concat_failed = .false.
+    buffer = ""
+    
+        if (cursor <= len_trim(input) .and. ("atacar" == input(cursor:cursor + 5 ))) then 
+            buffer = buffer // input(cursor:cursor + 5)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 6
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
 
+        if (cursor <= len_trim(input) .and. (":" == input(cursor:cursor + 0 ))) then 
+            buffer = buffer // input(cursor:cursor + 0)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 1
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
 
-
-
-
-
-    initialCursor = cursor
-    do while (cursor <= len_trim(input) .and. ((iachar(input(cursor:cursor)) >= iachar("0") .and. &
-        iachar(input(cursor:cursor)) <= iachar("9"))))
-        cursor = cursor + 1
-    end do
-    if (cursor > initialCursor) then
-        allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1) 
-
-        lexeme = lexeme // " -" // "integer"
+        if (cursor <= len_trim(input) .and. (((input(cursor:cursor) == char(32))))) then 
+            buffer = buffer // input(cursor:cursor + 0)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 1
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
+    if (.not. concat_failed .and. len(buffer) > 0) then
+        allocate( character(len=len(buffer)) :: lexeme)
+        lexeme = buffer
+        lexeme = lexeme // " -" // "turno"
         return
     end if
+        
 
-    initialCursor = cursor
-    do while (cursor <= len_trim(input) .and. ((iachar(input(cursor:cursor)) >= iachar("a") .and. &
-        iachar(input(cursor:cursor)) <= iachar("z"))& 
-    .or. (iachar(input(cursor:cursor)) >= iachar("A") .and. &
-        iachar(input(cursor:cursor)) <= iachar("Z"))))
-        cursor = cursor + 1
-    end do
-    if (cursor > initialCursor) then
-        allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1) 
 
-        lexeme = lexeme // " -" // "string"
+
+    concat_failed = .false.
+    buffer = ""
+    
+        if (cursor <= len_trim(input) .and. (((iachar(tolower(input(cursor:cursor))) >= iachar("a") .and. &
+        iachar(tolower(input(cursor:cursor))) <= iachar("j"))))) then 
+            buffer = buffer // input(cursor:cursor + 0)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 1
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
+    if (.not. concat_failed .and. len(buffer) > 0) then
+        allocate( character(len=len(buffer)) :: lexeme)
+        lexeme = buffer
+        lexeme = lexeme // " -" // "columna"
         return
     end if
+        
 
-    initialCursor = cursor
-    do while (cursor <= len_trim(input) .and. ((input(cursor:cursor) == char(32))& 
-    .or. (input(cursor:cursor) == char(9))& 
-    .or. (input(cursor:cursor) == char(10))& 
-    .or. (input(cursor:cursor) == char(13))))
-        cursor = cursor + 1
-    end do
-    if (cursor > initialCursor) then
-        allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1) 
+    concat_failed = .false.
+    buffer = ""
+    
+        if (cursor <= len_trim(input) .and. (((input(cursor:cursor) == "0")))) then 
+            buffer = buffer // input(cursor:cursor + 0)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 1
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
 
-        lexeme = lexeme // " -" // "whitespace"
+        if (cursor <= len_trim(input) .and. (((iachar(input(cursor:cursor)) >= iachar("1") .and. &
+        iachar(input(cursor:cursor)) <= iachar("9"))))) then 
+            buffer = buffer // input(cursor:cursor + 0)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 1
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
+    if (.not. concat_failed .and. len(buffer) > 0) then
+        allocate( character(len=len(buffer)) :: lexeme)
+        lexeme = buffer
+        lexeme = lexeme // " -" // "fila"
         return
     end if
+        
 
+    concat_failed = .false.
+    buffer = ""
+    
+        if (cursor <= len_trim(input) .and. ("10" == input(cursor:cursor + 1 ))) then 
+            buffer = buffer // input(cursor:cursor + 1)
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + 2
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if
+    if (.not. concat_failed .and. len(buffer) > 0) then
+        allocate( character(len=len(buffer)) :: lexeme)
+        lexeme = buffer
+        lexeme = lexeme // " -" // "fila"
+        return
+    end if
+        
 
     print *, "error lexico en col ", cursor, ', "'//input(cursor:cursor)//'"'
     lexeme = "ERROR"
