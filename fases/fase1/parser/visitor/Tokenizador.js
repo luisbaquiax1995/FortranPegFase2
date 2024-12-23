@@ -21,8 +21,14 @@ subroutine parse(input)
     character(len=:), allocatable :: lexeme
     integer :: cursor
     cursor = 1
-    do while (lexeme /= "EOF" .and. lexeme /= "ERROR")
-        lexeme = nextSym(input, cursor)
+    do while (lexeme /= "EOF" )
+        if(lexeme == "ERROR") THEN 
+            cursor = cursor + 1
+            lexeme = nextSym(input, cursor)
+        else 
+            lexeme = nextSym(input, cursor)
+            
+        end if
         print *, lexeme
     end do
 end subroutine parse
