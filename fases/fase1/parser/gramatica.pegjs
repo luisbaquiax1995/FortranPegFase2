@@ -42,14 +42,11 @@ union
     return new n.Union([expr, ...rest]);
   }
 
-expresion
-  = label:$(etiqueta/varios)? _ expr:expresiones _ qty:$([?+*]/conteo)? {
-    return new n.Expresion(expr, label, qty);
-  }
+expresion  = (etiqueta/varios)? _ expresiones _ ([?+*]/conteo)?
 
 etiqueta = ("@")? _ id:identificador _ ":" (varios)?
 
-varios = ("!"(!".") /"$"/"@"/"&")
+varios = ("!"/"$"/"@"/"&")
 
 expresiones
   = id:identificador {
@@ -91,13 +88,17 @@ conteo = "|" _ (numero / id:identificador) _ "|"
 // Regla principal que analiza corchetes con contenido
 corchetes
     = "[" contenido:(rango / contenido)+ "]" {
-        return contenido;
+        return `Entrada válida: [${input}]`;
     }
 
 // Regla para validar un rango como [A-Z]
 rango
-    = inicio:$caracter "-" fin:$caracter {
-        return new  n.rango(inicio, fin);
+    = inicio:caracter "-" fin:caracter {
+        if (inicio.charCodeAt(0) > fin.charCodeAt(0)) {
+            throw new Error(`Rango inválido: [${inicio}-${fin}]`);
+
+        }
+        return `${inicio}-${fin}`;
     }
 
 // Regla para caracteres individuales
@@ -106,16 +107,16 @@ caracter
 
 // Coincide con cualquier contenido que no incluya "]"
 contenido
-    = contenido: (corchete / @$texto){
-        return new n.literalRango(contenido);
-    }
+    = (corchete / texto)+
 
-corchete
-    = "[" contenido "]"
+ corchete
+    = "[" contenido "]" 
+*/
+
+// Coincide con cualquier contenido que no incluya "]"
 
 texto
-    = "\\" escape
-    /[^\[\]]
+    = [^\[\]]+
 
 literales
   = '"' @stringDobleComilla* '"'
@@ -123,11 +124,16 @@ literales
 
 stringDobleComilla = !('"' / "\\" / finLinea) .
                     / "\\" escape
-                    / continuacionLinea
+                    //(se quitaron porque peggyjs no acepta cadenas con multilinea) igual no funcionaba xd
+                    // / continuacionLinea
 
 stringSimpleComilla = !("'" / "\\" / finLinea) .
                     / "\\" escape
-                    / continuacionLinea
+                    //(se quitaron porque peggyjs no acepta cadenas con multilinea) igual no funcionaba xd
+                    // / continuacionLinea
+
+//(se quitaron porque peggyjs no acepta cadenas con multilinea) igual no funcionaba xd
+// continuacionLinea = "\\" secuenciaFinLinea
 
 continuacionLinea = "\\" secuenciaFinLinea
 
