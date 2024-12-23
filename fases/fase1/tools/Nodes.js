@@ -1,6 +1,6 @@
 const nodes = {
    Producciones: ['id', 'expr', 'alias'],
-   Opciones: ['exprs'],
+   Opciones: ['exprs', 'qty'],
    Union: ['exprs'],
    Expresion: ['expr', 'label', 'qty'],
    String: ['val', 'isCase', 'qty'],

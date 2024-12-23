@@ -56,7 +56,6 @@ function replace_special_characters(input_string) result(output_string)
     temp_string = ""
     length = len(input_string)
 
-    ! Ejemplo de uso
     do i = 1, length
         select case (ichar(input_string(i:i)))
         case (10) ! Nueva línea
@@ -83,6 +82,8 @@ function nextSym(input, cursor) result(lexeme)
     character(len=*), intent(in) :: input
     integer, intent(inout) :: cursor
     character(len=:), allocatable :: lexeme
+    character(len=:), allocatable :: buffer 
+    logical :: concat_failed
     integer :: initialCursor
 
     if (cursor > len(input)) then
@@ -146,14 +147,50 @@ end module parser
     visitOpciones(node) {
         return node.exprs.map((expr) => expr.accept(this)).join('\n');
     }
+    
     visitUnion(node) {
-        return node.exprs.map((expr) => expr.accept(this)).join('\n');
+        const grupos = [];
+        let grupoActual = [];
+        let resultadoFinal = '';
+        let resultadotmp = '';
+        for (let i = 0; i < node.exprs.length; i++) {
+            const expr = node.exprs[i];
+            if (expr.expr instanceof n.String || expr.expr instanceof n.Corchetes || expr.expr instanceof n.Any) { // Si es instancia de String, Corchete o Any, se agrega al grupo
+                grupoActual.push(expr);
+            } else { // Si no, cerramos el grupo y comenzamos uno nuevo
+                if (grupoActual.length > 0) {
+                    grupos.push(grupoActual);
+                    grupoActual = [];
+                }
+                resultadotmp += expr.accept(this) + "\n" // igual recorrer 
+            }
+        }
+        if (grupoActual.length > 0) {
+            grupos.push(grupoActual);
+        }
+
+        for (let grupo of grupos) {
+            const resultadoGrupo = grupo.map((expr) => expr.accept(this)).join('\n');
+            resultadoFinal += `
+    concat_failed = .false.
+    buffer = ""
+    ${resultadoGrupo}
+    if (.not. concat_failed .and. len(buffer) > 0) then
+        allocate( character(len=len(buffer)) :: lexeme)
+        lexeme = buffer
+        lexeme = lexeme // " -" // "${this.nameProduction}"
+        return
+    end if
+        `
+        }
+        return resultadoFinal + resultadotmp;
     }
 
     visitExpresion(node) {
         if ( node.qty && //there is a quantifier
             (node.expr instanceof n.String 
-            || node.expr instanceof n.Corchetes)
+            || node.expr instanceof n.Corchetes
+            || node.expr instanceof n.grupo)
         ){
             node.expr.qty = node.qty // inherit quantifier
         }
@@ -171,20 +208,19 @@ end module parser
         return `
     ! Cualquier carácter es aceptado como lexema
     if (cursor <= len_trim(input)) then
-        allocate( character(len=1) :: lexeme)
-        lexeme = input(cursor:cursor)
-
-        lexeme = lexeme // " -" // ${this.nameProduction}
-       
-        cursor = cursor + 1
-        return
+        buffer = buffer // input(cursor:cursor + ${length - 1})
+        buffer = replace_special_characters(buffer)
+        cursor = cursor + ${length}
+    else
+        concat_failed = .true.
+        buffer = ""
     end if
     `;
     }
 
     visitCorchetes(node) {
         node.exprs.forEach(expr => { expr.isCase = node.isCase });
-        let conditions = node.exprs.map((expr) => expr.accept(this)).join('& \n    .or. ')
+        let conditions = "(" + node.exprs.map((expr) => expr.accept(this)).join(')& \n    .or. (') + ")"
         return this.renderQuantifierOption(node.qty, conditions, 1)
     }
 
@@ -226,6 +262,7 @@ end module parser
     }
 
     visitgrupo(node) {
+        node.expr.qty = node.qty
         return node.expr.accept(this);
     }
 
@@ -236,26 +273,28 @@ end module parser
     renderQuantifierOption(qty, condition, length){
         return (qty == '+' || qty == '*')
         ? `
-    initialCursor = cursor
-    do while (cursor <= len_trim(input) .and. (${condition}))
-        cursor = cursor + ${length}
-    end do
-    if (cursor > initialCursor) then
-        allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1) 
-        lexeme = replace_special_characters(lexeme)
-        lexeme = lexeme // " -" // ${this.nameProduction}
-        return
-    end if`      
+        initialCursor = cursor
+        do while (cursor <= len_trim(input) .and. (${condition}))
+            cursor = cursor + ${length}
+        end do
+        if (cursor > initialCursor) then
+            buffer = buffer // input(initialCursor:cursor-1) 
+            buffer = replace_special_characters(buffer)
+        else
+            cursor = initialCursor
+            concat_failed = .true.
+            buffer = ""
+        end if`      
             : `
-    if (cursor <= len_trim(input) .and. (${condition})) then 
-        allocate( character(len=${length}) :: lexeme)
-        lexeme = input(cursor:cursor + ${length - 1})
-        lexeme = replace_special_characters(lexeme)
-        lexeme = lexeme // " -" // ${this.nameProduction}
-        cursor = cursor + ${length}
-        return
-    end if`;
+        if (cursor <= len_trim(input) .and. (${condition})) then 
+            buffer = buffer // input(cursor:cursor + ${length - 1})
+            buffer = replace_special_characters(buffer)
+            cursor = cursor + ${length}
+        else
+            concat_failed = .true.
+            buffer = ""
+        end if`;
+    
     }
 
 }

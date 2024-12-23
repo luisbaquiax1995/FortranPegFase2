@@ -18,9 +18,10 @@ export class Producciones extends Node {
     
 export class Opciones extends Node {
 
-    constructor(exprs) {
+    constructor(exprs, qty) {
         super();
         this.exprs = exprs;
+		this.qty = qty;
     }
 
     accept(visitor) {
