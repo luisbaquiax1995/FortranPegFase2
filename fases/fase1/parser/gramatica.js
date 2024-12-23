@@ -521,10 +521,12 @@ function peg$parse(input, options) {
     s2 = peg$parseidentificador();
     if (s2 !== peg$FAILED) {
       s3 = peg$parse_();
-      s4 = peg$parseliterales();
-      if (s4 === peg$FAILED) {
-        s4 = null;
+      s4 = peg$currPos;
+      s5 = peg$parseliterales();
+      if (s5 === peg$FAILED) {
+        s5 = null;
       }
+      s4 = input.substring(s4, peg$currPos);
       s5 = peg$parse_();
       if (input.charCodeAt(peg$currPos) === 61) {
         s6 = peg$c0;

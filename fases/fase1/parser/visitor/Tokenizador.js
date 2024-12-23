@@ -7,13 +7,26 @@ export default class Tokenizer extends Visitor {
         this.calledRules = [];
         this.pendingRules = [];
         this.isFisrtRule = true;
+        this.nameProduction = '';
     }
     generateTokenizer(grammar) {
         return `
-module tokenizer
+module parser
 implicit none
 
 contains
+
+subroutine parse(input)
+    character(len=:), intent(inout), allocatable :: input
+    character(len=:), allocatable :: lexeme
+    integer :: cursor
+    cursor = 1
+    do while (lexeme /= "EOF" .and. lexeme /= "ERROR")
+        lexeme = nextSym(input, cursor)
+        print *, lexeme
+    end do
+end subroutine parse
+
 function tolower(str) result(lower_str)
         character(len=*), intent(in) :: str
         character(len=len(str)) :: lower_str
@@ -27,51 +40,6 @@ function tolower(str) result(lower_str)
         end do
 end function tolower
 
-function is_digit(str) result(res)
-    implicit none
-    character(len=*), intent(in) :: str
-    integer :: i
-    logical :: res
-
-    res = .true.
-    do i = 1, len(str)
-        if (.not. (str(i:i) >= '0' .and. str(i:i) <= '9')) then
-            res = .false.
-            return
-        end if
-    end do
-end function is_digit
-
-function is_str(str) result(res)
-    implicit none
-    character(len=*), intent(in) :: str
-    integer :: i
-    logical :: res
-
-    res = .true.
-    do i = 1, len(str)
-        if (.not. ((str(i:i) >= 'A' .and. str(i:i) <= 'Z') .or. &
-                   (str(i:i) >= 'a' .and. str(i:i) <= 'z'))) then
-            res = .false.
-            return
-        end if
-    end do
-end function is_str
-
-function with_whitespace(str) result(res)
-    implicit none
-    character(len=*), intent(in) :: str
-    integer :: i
-    logical :: res
-
-    res = .false.
-    do i = 1, len(str)
-        if (str(i:i) == ' ' .or. str(i:i) == char(9) .or. str(i:i) == char(10) .or. str(i:i) == char(13)) then
-            res = .true.
-            return
-        end if
-    end do
-end function with_whitespace
 
 function nextSym(input, cursor) result(lexeme)
     character(len=*), intent(in) :: input
@@ -98,7 +66,7 @@ function nextSym(input, cursor) result(lexeme)
     print *, "error lexico en col ", cursor, ', "'//input(cursor:cursor)//'"'
     lexeme = "ERROR"
 end function nextSym
-end module tokenizer 
+end module parser 
         `;
     }
 
@@ -110,6 +78,9 @@ end module tokenizer
             if (index !== -1) {
                 this.pendingRules.splice(index, 1);
             }
+
+            this.nameProduction = node.alias? node.alias : node.id;
+            console.log("nameProduction: " + this.nameProduction);
             return node.expr.accept(this);
         }
 
@@ -121,14 +92,17 @@ end module tokenizer
             if (index !== -1) {
                 this.pendingRules.splice(index, 1);
             }
+
+            this.nameProduction = node.alias? node.alias : node.id;
+            console.log("nameProduction: " + this.nameProduction);
             return node.expr.accept(this);
              
         }
 
-        console.log("llamadas");
-        console.log(this.calledRules);
-        console.log("pendientes");
-        console.log(this.pendingRules);
+        //console.log("llamadas");
+        //console.log(this.calledRules);
+        //console.log("pendientes");
+        //console.log(this.pendingRules);
         return '';
     }
     visitOpciones(node) {
@@ -162,13 +136,8 @@ end module tokenizer
         allocate( character(len=1) :: lexeme)
         lexeme = input(cursor:cursor)
 
-        lexeme = merge(lexeme // " integer", &
-               merge(lexeme // " cadena", &
-                     merge(lexeme // " whitespace", lexeme // " simbolo", with_whitespace(lexeme)), &
-                     is_str(lexeme)), &
-               is_digit(lexeme))
-
-
+        lexeme = lexeme // " -" // ${this.nameProduction}
+       
         cursor = cursor + 1
         return
     end if
@@ -237,23 +206,14 @@ end module tokenizer
         allocate(character(len=cursor-initialCursor)::lexeme)
         lexeme = input(initialCursor:cursor-1) 
 
-        lexeme = merge(lexeme // " integer", &
-               merge(lexeme // " cadena", &
-                     merge(lexeme // " whitespace", lexeme // " simbolo", with_whitespace(lexeme)), &
-                     is_str(lexeme)), &
-               is_digit(lexeme))
+        lexeme = lexeme // " -" // ${this.nameProduction}
         return
     end if`      
             : `
     if (cursor <= len_trim(input) .and. (${condition})) then 
         allocate( character(len=${length}) :: lexeme)
         lexeme = input(cursor:cursor + ${length - 1})
-
-        lexeme = merge(lexeme // " integer", &
-               merge(lexeme // " cadena", &
-                     merge(lexeme // " whitespace", lexeme // " simbolo", with_whitespace(lexeme)), &
-                     is_str(lexeme)), &
-               is_digit(lexeme))
+        lexeme = lexeme // " -" // ${this.nameProduction}
         cursor = cursor + ${length}
         return
     end if`;

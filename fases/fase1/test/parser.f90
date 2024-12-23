@@ -1,8 +1,26 @@
 
-module tokenizer
+module parser
 implicit none
 
 contains
+
+subroutine parse(input)
+    character(len=:), intent(inout), allocatable :: input
+    character(len=:), allocatable :: lexeme
+    integer :: cursor
+    cursor = 1
+    do while (lexeme /= "EOF" )
+        if(lexeme == "ERROR") THEN 
+            cursor = cursor + 1
+            lexeme = nextSym(input, cursor)
+        else 
+            lexeme = nextSym(input, cursor)
+            
+        end if
+        print *, lexeme
+    end do
+end subroutine parse
+
 function tolower(str) result(lower_str)
         character(len=*), intent(in) :: str
         character(len=len(str)) :: lower_str
@@ -15,6 +33,52 @@ function tolower(str) result(lower_str)
             end if
         end do
 end function tolower
+
+function is_digit(str) result(res)
+    implicit none
+    character(len=*), intent(in) :: str
+    integer :: i
+    logical :: res
+
+    res = .true.
+    do i = 1, len(str)
+        if (.not. (str(i:i) >= '0' .and. str(i:i) <= '9')) then
+            res = .false.
+            return
+        end if
+    end do
+end function is_digit
+
+function is_str(str) result(res)
+    implicit none
+    character(len=*), intent(in) :: str
+    integer :: i
+    logical :: res
+
+    res = .true.
+    do i = 1, len(str)
+        if (.not. ((str(i:i) >= 'A' .and. str(i:i) <= 'Z') .or. &
+                   (str(i:i) >= 'a' .and. str(i:i) <= 'z'))) then
+            res = .false.
+            return
+        end if
+    end do
+end function is_str
+
+function with_whitespace(str) result(res)
+    implicit none
+    character(len=*), intent(in) :: str
+    integer :: i
+    logical :: res
+
+    res = .false.
+    do i = 1, len(str)
+        if (str(i:i) == ' ' .or. str(i:i) == char(9) .or. str(i:i) == char(10) .or. str(i:i) == char(13)) then
+            res = .true.
+            return
+        end if
+    end do
+end function with_whitespace
 
 function nextSym(input, cursor) result(lexeme)
     character(len=*), intent(in) :: input
@@ -31,6 +95,10 @@ function nextSym(input, cursor) result(lexeme)
     
 
 
+
+
+
+
     initialCursor = cursor
     do while (cursor <= len_trim(input) .and. ((iachar(input(cursor:cursor)) >= iachar("0") .and. &
         iachar(input(cursor:cursor)) <= iachar("9"))))
@@ -38,7 +106,9 @@ function nextSym(input, cursor) result(lexeme)
     end do
     if (cursor > initialCursor) then
         allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1)
+        lexeme = input(initialCursor:cursor-1) 
+
+        lexeme = lexeme // " -" // "integer"
         return
     end if
 
@@ -51,7 +121,9 @@ function nextSym(input, cursor) result(lexeme)
     end do
     if (cursor > initialCursor) then
         allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1)
+        lexeme = input(initialCursor:cursor-1) 
+
+        lexeme = lexeme // " -" // "string"
         return
     end if
 
@@ -64,7 +136,9 @@ function nextSym(input, cursor) result(lexeme)
     end do
     if (cursor > initialCursor) then
         allocate(character(len=cursor-initialCursor)::lexeme)
-        lexeme = input(initialCursor:cursor-1)
+        lexeme = input(initialCursor:cursor-1) 
+
+        lexeme = lexeme // " -" // "whitespace"
         return
     end if
 
@@ -72,20 +146,5 @@ function nextSym(input, cursor) result(lexeme)
     print *, "error lexico en col ", cursor, ', "'//input(cursor:cursor)//'"'
     lexeme = "ERROR"
 end function nextSym
-end module tokenizer 
-
-program parser
-    use tokenizer
-    implicit none
-
-    character(len=*), parameter :: input = "10 hola 3 5 mundo       &
-    &56"
-    character(len=:), allocatable :: lexeme
-    integer :: cursor
-
-    cursor = 1
-    do while (lexeme /= "EOF" .and. lexeme /= "ERROR")
-        lexeme = nextSym(input, cursor)
-        print *, lexeme
-    end do
-end program parser
+end module parser 
+        
