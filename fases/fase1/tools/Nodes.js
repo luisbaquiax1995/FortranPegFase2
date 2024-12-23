@@ -9,7 +9,7 @@ const nodes = {
    rango: ['start', 'end', 'isCase'],
    literalRango:['val', 'isCase'],
    idRel:['val'],
-   grupo:['expr'],
+   grupo:['expr', 'qty'],
    finCadena:[]
 };
 

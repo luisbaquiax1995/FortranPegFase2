@@ -135,9 +135,10 @@ export class idRel extends Node {
     
 export class grupo extends Node {
 
-    constructor(expr) {
+    constructor(expr, qty) {
         super();
         this.expr = expr;
+		this.qty = qty;
     }
 
     accept(visitor) {
