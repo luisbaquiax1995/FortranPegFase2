@@ -46,6 +46,38 @@ function tolower(str) result(lower_str)
         end do
 end function tolower
 
+function replace_special_characters(input_string) result(output_string)
+    implicit none
+    character(len=:), allocatable, intent(in) :: input_string
+    character(len=:), allocatable :: temp_string
+    character(len=:), allocatable :: output_string
+    integer :: i, length
+
+    temp_string = ""
+    length = len(input_string)
+
+    ! Ejemplo de uso
+    do i = 1, length
+        select case (ichar(input_string(i:i)))
+        case (10) ! Nueva línea
+            temp_string = temp_string // '\\n'
+        case (9)  ! Tabulación
+            temp_string = temp_string // '\\t'
+        case (13) ! Retorno de carro
+            temp_string = temp_string // '\\r'
+        case (32) ! Espacio
+            if (input_string(i:i) == " ") then
+                temp_string = temp_string // "_"
+            else
+                temp_string = temp_string // input_string(i:i)
+            end if
+        case default
+            temp_string = temp_string // input_string(i:i)
+        end select
+    end do
+    allocate(character(len=len(temp_string)) :: output_string)
+    output_string = temp_string
+end function
 
 function nextSym(input, cursor) result(lexeme)
     character(len=*), intent(in) :: input
@@ -211,7 +243,7 @@ end module parser
     if (cursor > initialCursor) then
         allocate(character(len=cursor-initialCursor)::lexeme)
         lexeme = input(initialCursor:cursor-1) 
-
+        lexeme = replace_special_characters(lexeme)
         lexeme = lexeme // " -" // ${this.nameProduction}
         return
     end if`      
@@ -219,6 +251,7 @@ end module parser
     if (cursor <= len_trim(input) .and. (${condition})) then 
         allocate( character(len=${length}) :: lexeme)
         lexeme = input(cursor:cursor + ${length - 1})
+        lexeme = replace_special_characters(lexeme)
         lexeme = lexeme // " -" // ${this.nameProduction}
         cursor = cursor + ${length}
         return
